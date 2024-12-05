@@ -1,9 +1,16 @@
 document.getElementById('sbom-scan-form').addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent the form from submitting normally
 
-    const email = document.getElementById('email').value;
     const formResponse = document.getElementById('form-response');
-    const apiKey = '1e817ad50a32161a1f0f8785c8daf3dac83923f659345795ddd93021b30c5755';
+    const email = document.getElementById('email').value;
+    const fileInput = document.getElementById('sbom-file');
+    const file = fileInput.files[0]; // Get the selected file
+    const checkUserKey = '1e817ad50a32161a1f0f8785c8daf3dac83923f659345795ddd93021b30c5755';
+
+    if (!file) {
+        formResponse.textContent = 'Please select a file to upload.';
+        return;
+    }
 
     try {
         // Call the GET /check-user endpoint with the required API key
@@ -11,7 +18,7 @@ document.getElementById('sbom-scan-form').addEventListener('submit', async funct
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': apiKey, // Add the API key here
+                'x-api-key': checkUserKey
             },
         });
 
@@ -24,21 +31,29 @@ document.getElementById('sbom-scan-form').addEventListener('submit', async funct
 
         if (data.registered) {
             // If registered, call the POST endpoint
-            const userApiKey = data.key;
+            const scanApiKey = data.key;
+            
+            // Create FormData to send email and file
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const scanResponse = await fetch('/start-scan', {
+            // Send the POST request to /start-scan
+            const scanResponse = await fetch('https://sbom-scanner-353497251923.northamerica-northeast1.run.app/scan', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-KEY': userApiKey,
+                    'X-API-Key': scanApiKey
                 },
-                body: JSON.stringify({ email }),
+                body: formData,
             });
 
             if (scanResponse.ok) {
-                formResponse.textContent = 'Scan successfully started!';
+                const responseData = await scanResponse.json();
+                const rawResponse = JSON.stringify(responseData, null, 2);
+                formResponse.textContent = `Scan started successfully! Scan Data:\n${rawResponse}`;
             } else {
-                formResponse.textContent = 'Error starting scan.';
+                const errorData = await scanResponse.json();
+                console.error("Error details:", errorData);
+                formResponse.textContent = `Failed to start scan: ${errorData.detail || 'Unknown error'}`;
             }
         } else {
             // If not registered, prompt the user
