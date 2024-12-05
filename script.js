@@ -1,3 +1,7 @@
+const APP_VERSION = '0.0.1';
+
+console.info(`App Version: ${APP_VERSION}`);
+
 document.getElementById('sbom-scan-form').addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent the form from submitting normally
 
