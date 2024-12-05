@@ -20,6 +20,7 @@ document.getElementById('sbom-scan-form').addEventListener('submit', async funct
         }
 
         const data = await response.json();
+        formResponse.textContent = 'Registration checking...';
 
         if (data.registered) {
             // If registered, call the POST endpoint
