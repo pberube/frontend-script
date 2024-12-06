@@ -3,23 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SBOM Scanner</title>
+    <title>SBOM Vulnerability Scanner</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Enter your email and select your SBOM file:</h1>
-    <form id="sbom-scan-form">
-        <div>
-            <label for="email">Email :</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-        <div>
-            <label for="sbom-file">SBOM File :</label>
-            <input type="file" id="sbom-file" name="sbom-file" required>
-        </div>
-        <div><button type="submit">Scan SBOM</button></div>
-    </form>
-    <div id="form-response"></div>
-    <script type="module" src="version.js"></script>
+    <div class="container">
+        <header>
+            <h1>SBOM Vulnerability Scanner</h1>
+            <p>Scan your SBOM file for vulnerabilities.</p>
+        </header>
+        <main>
+            <form id="scan-form" class="form-card">
+                <div class="form-group">
+                    <label for="sbom-file">Select SBOM File</label>
+                    <input type="file" id="sbom-file" accept=".json,.xml,.spdx" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="example@example.com" required>
+                </div>
+                <button type="button" class="primary-button" id="launch-scan">Launch Scan</button>
+            </form>
+
+            <section id="summary" class="summary">
+                <div><span id="total-vulns">0</span><small>Total Vulnerabilities</small></div>
+                <div><span id="impacted-items">0</span><small>Impacted Components</small></div>
+                <div><span id="critical-vulns">0</span><small>Critical</small></div>
+                <div><span id="high-vulns">0</span><small>High</small></div>
+                <div><span id="medium-vulns">0</span><small>Medium</small></div>
+                <div><span id="low-vulns">0</span><small>Low</small></div>
+            </section>
+            
+            <section id="user-feedback" class="user-feedback">
+                <div id="form-response"></div>
+            </section>
+        
+            <section id="results" class="hidden">
+                <h2>Scan Results</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vulnerability</th>
+                            <th>Severity</th>
+                            <th>Fixed Version</th>
+                            <th>Description</th>
+                            <th>Related CVE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Component A</td>
+                            <td>1.0.0</td>
+                            <td>1.0.1</td>
+                            <td>Critical vulnerability in authentication module.</td>
+                            <td>CVE-001, CVE-002</td>
+                        </tr>
+                        <tr>
+                            <td>Component B</td>
+                            <td>2.3.4</td>
+                            <td>2.3.5</td>
+                            <td>High vulnerability in network stack.</td>
+                            <td>CVE-003, CVE-004</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            <section id="registration" class="hidden">
+                <h2>Email Not Registered</h2>
+                <p>Your email is not registered. Would you like to register?</p>
+                <button id="register-button" class="primary-button">Register Now</button>
+            </section>
+        </main>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
