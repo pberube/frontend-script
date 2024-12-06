@@ -3,14 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register User</title>
+    <title>SBOM Vulnerability Scanner</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Complete Registration</h1>
-    <form id="registration-form">
-        <input type="hidden" id="email" name="email">
-        <button type="submit">Register</button>
-    </form>
+    <div class="container">
+        <header>
+            <h1>SBOM Vulnerability Scanner</h1>
+        </header>
+        <form id="registration-form" class="form-card">
+            <div class="form-group">
+                <label for="sbom-file">Complete Registration</label>
+            </div>
+            <input type="hidden" id="email" name="email">
+            <button type="submit" class="primary-button">Register</button>
+        </form>
+    </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             // Extract email from the URL
@@ -34,6 +42,7 @@
 
                     if (response.ok) {
                         alert("Registration successful!");
+                        window.location.href = "https://pberube.github.io/frontend-script/";
                     } else {
                         const errorData = await response.json(); // Parse the response body
                         console.error("Error details:", errorData);
