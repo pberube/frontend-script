@@ -47,7 +47,7 @@ label {
     font-weight: bold;
 }
 
-input[type="file"], input[type="email"] {
+input[type="file"], input[type="email"], input[type="text"] {
     width: 100%;
     box-sizing: border-box;
     padding: 10px;
@@ -120,4 +120,47 @@ table tbody td {
 
 tr:hover {
     background-color: #f1f1f1; /* Highlight color */
+}
+
+.scan-mode {
+    display: flex;
+    gap: 15px;
+}
+
+.scan-mode label {
+    font-weight: normal;
+}
+
+select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.hint {
+    font-size: 0.85em;
+    color: #666;
+}
+
+.horizontal-fields {
+    display: flex;
+    gap: 15px;
+}
+
+.horizontal-fields .field {
+    flex: 1;
+}
+
+.horizontal-fields input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    .horizontal-fields {
+        flex-direction: column;
+    }
 }

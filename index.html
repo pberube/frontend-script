@@ -15,8 +15,45 @@
         <main>
             <form id="scan-form" class="form-card">
                 <div class="form-group">
-                    <label for="sbom-file">Select SBOM File</label>
-                    <input type="file" id="sbom-file" accept=".json,.xml,.spdx" required>
+                    <label>Scan Type</label>
+                    <div class="scan-mode">
+                        <label>
+                            <input type="radio" name="scan-mode" value="sbom" checked>
+                            SBOM File
+                        </label>
+                        <label>
+                            <input type="radio" name="scan-mode" value="component-ecosystem">
+                            Component Name + Version
+                        </label>
+                    </div>
+                </div>
+                <div class="scan-section" id="sbom-section">
+                    <div class="form-group">
+                        <label for="sbom-file">Select SBOM File</label>
+                        <input type="file" id="sbom-file" accept=".json,.xml,.spdx">
+                    </div>
+                </div>
+                <div class="scan-section hidden" id="component-ecosystem-section">
+                    <div class="form-group horizontal-fields">
+                        <div class="field">
+                            <label for="component-name">Component Name</label>
+                            <input type="text" id="component-name" placeholder="log4net">
+                        </div>
+                        <div class="field">
+                            <label for="component-version">Version</label>
+                            <input type="text" id="component-version" placeholder="1.2.13.0">
+                        </div>
+                        <div class="field">
+                            <label for="ecosystem">Ecosystem</label>
+                            <select id="ecosystem">
+                            <option value="all">All</option>
+                            <option value="nuget">NuGet (.NET)</option>
+                            <option value="maven">Maven (Java)</option>
+                            <option value="npm">npm (Node.js)</option>
+                            <option value="pypi">PyPI (Python)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>

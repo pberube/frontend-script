@@ -1,4 +1,10 @@
-const APP_VERSION = '0.0.2';
+const APP_VERSION = '0.0.3';
+
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:8000"
+    : "https://sbom-scanner-353497251923.northamerica-northeast1.run.app";
+
 
 console.info(`App Version: ${APP_VERSION}`);
 
@@ -35,6 +41,19 @@ function enableElementIds(elementIds) {
     });
 }
 
+document.querySelectorAll('input[name="scan-mode"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.scan-section').forEach(s => s.classList.add('hidden'));
+
+    if (radio.value === 'sbom') {
+      document.getElementById('sbom-section').classList.remove('hidden');
+    }
+    if (radio.value === 'component-ecosystem') {
+      document.getElementById('component-ecosystem-section').classList.remove('hidden');
+    }
+  });
+});
+
 document.getElementById("sbom-file").addEventListener("change", async function () {
     const selectedFile = this.files[0]; // Get the first selected file
     const userFeedback = document.getElementById('user-feedback');
@@ -51,21 +70,32 @@ document.getElementById("sbom-file").addEventListener("change", async function (
 });
 
 document.getElementById("launch-scan").addEventListener("click", async function (event) {
+    const mode = document.querySelector('input[name="scan-mode"]:checked').value;
     event.preventDefault(); // Prevent the form from submitting normally
 
     const fileInput = document.getElementById("sbom-file");
     const emailInput = document.getElementById("email");
     const userFeedback = document.getElementById('user-feedback');
     const checkUserKey = '1e817ad50a32161a1f0f8785c8daf3dac83923f659345795ddd93021b30c5755';
+    const component_name = document.getElementById('component-name').value.trim();
+    const component_version = document.getElementById('component-version').value.trim();
+    const ecosystem = document.getElementById('ecosystem').value;
 
-    disableElementIds([this, fileInput, emailInput]);
-    showSection(["scan-form", "user-feedback"]);
-    
-    if (!fileInput.files.length) {
+    const file = mode === 'sbom'
+        ? (fileInput.files.length ? fileInput.files[0] : null)
+        : null;
+
+    if (mode === 'sbom' && !file) {
         alert("Please select an SBOM file to scan.");
         return;
     }
-    const file = fileInput.files[0]; // Get the selected file
+    
+    if (mode === 'component-ecosystem') {
+        if (!component_name || !component_version) {
+        alert("Please enter component name and version.");
+        return;
+        }
+    }
 
     const email = emailInput.value.trim();
     if (!email) {
@@ -73,12 +103,15 @@ document.getElementById("launch-scan").addEventListener("click", async function 
         return;
     }
 
+    disableElementIds([this, fileInput, emailInput]);
+    showSection(["scan-form", "user-feedback"]);
+
     try {
         // Provide feedback !!
         userFeedback.textContent = 'Registration checking...';
 
         // Call the GET /check-user endpoint with the required API key
-        const response = await fetch(`https://sbom-scanner-353497251923.northamerica-northeast1.run.app/check-user?email=${encodeURIComponent(email)}`, {
+        const response = await fetch(`${API_BASE_URL}/check-user?email=${encodeURIComponent(email)}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -92,36 +125,57 @@ document.getElementById("launch-scan").addEventListener("click", async function 
         const data = await response.json();
 
         if (data.registered) {
+            resetSummarySection()
             userFeedback.textContent = 'Retrieving results...';
 
             // If registered, call the POST endpoint
             const scanApiKey = data.key;
-            
-            // Create FormData to send email and file
-            const formData = new FormData();
-            formData.append('file', file);
 
-            // Send the POST request to /start-scan
-            const scanResponse = await fetch('https://sbom-scanner-353497251923.northamerica-northeast1.run.app/scan', {
-                method: 'POST',
-                headers: {
-                    'X-API-Key': scanApiKey
-                },
-                body: formData,
-            });
+            let scanResponse = null;
 
-            if (scanResponse.ok) {
+            if (mode === 'sbom') {
+                // Create FormData to send email and file
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Send the POST request to /start-scan
+                scanResponse = await fetch(`${API_BASE_URL}/scan`, {
+                    method: 'POST',
+                    headers: {
+                        'X-API-Key': scanApiKey
+                    },
+                    body: formData,
+                });
+            }
+            else if (mode === 'component-ecosystem') {
+                const payload = {
+                    name: component_name,
+                    version: component_version,
+                    ecosystem: ecosystem
+                };
+                console.info("Payload:", payload);
+                scanResponse = await fetch(`${API_BASE_URL}/scan-component`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': scanApiKey
+                    },
+                    body: JSON.stringify(payload),
+                });
+            }
+
+            if (scanResponse && scanResponse.ok) {
                 const responseData = await scanResponse.json();
 
+                // Update the summary section with the response data
+                document.getElementById('total-vulns').textContent = responseData.summary.total;
+                document.getElementById('impacted-items').textContent = responseData.details.length;
+                document.getElementById('critical-vulns').textContent = responseData.summary.critical;
+                document.getElementById('high-vulns').textContent = responseData.summary.high;
+                document.getElementById('medium-vulns').textContent = responseData.summary.medium;
+                document.getElementById('low-vulns').textContent = responseData.summary.low;
+                
                 if (responseData.details.length > 0) {
-                    // Update the summary section with the response data
-                    document.getElementById('total-vulns').textContent = responseData.summary.total;
-                    document.getElementById('impacted-items').textContent = responseData.details.length;
-                    document.getElementById('critical-vulns').textContent = responseData.summary.critical;
-                    document.getElementById('high-vulns').textContent = responseData.summary.high;
-                    document.getElementById('medium-vulns').textContent = responseData.summary.medium;
-                    document.getElementById('low-vulns').textContent = responseData.summary.low;
-
                     // Populate the details table
                     const tableBody = document.querySelector("table tbody");
                     tableBody.innerHTML = ""; // Clear any existing rows
@@ -163,7 +217,7 @@ document.getElementById("launch-scan").addEventListener("click", async function 
                     userFeedback.textContent = `Scan completed successfully!`;
                 }
                 else {
-                    userFeedback.textContent = `No vulnerabilities detected`;
+                    userFeedback.textContent = `No vulnerabilities found.`;
                 }
                 enableElementIds([this, fileInput, emailInput]);
             } else {
